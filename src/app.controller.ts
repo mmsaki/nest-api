@@ -9,4 +9,9 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('/other_thing')
+  getOtherThing(): string {
+    return 'Wrong thing';
+  }
 }
