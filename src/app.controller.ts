@@ -40,6 +40,6 @@ export class AppController {
 
   @Post('payment-order')
   createPaymentOrder(@Body() body: PaymentOrder) {
-    return this.appService.createPaymentOrder(body.value, body.secret);
+    return this.appService.createPaymentOrder(body.value, body.secret);8b9 (I added getContractAddress() function)
   }
 }
