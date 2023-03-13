@@ -36,12 +36,15 @@ export class AppController {
   async getVotingPower(@Query('address') address: string) {
     return { result: this.appService.getVotingPower(address) };
   }
-
+  @Post('balance-of/:address')
+  getBalanceOf(@Query('address') address: string) {
+    return { result: this.appService.getBalanceOf(address) };
+  }
   @Get('transaction/:hash')
   getTransaction(@Param('hash') hash: string) {
     return this.appService.getTransaction(hash);
   }
-  @Post('request-tokens')
+  @Post('request-tokens/:body')
   requestTokens(@Body() body: RequestTokensDTO) {
     return { result: this.appService.requestTokens(body.address, body.amount) };
   }

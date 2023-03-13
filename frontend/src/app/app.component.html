@@ -1,104 +1,325 @@
-<div class="px-4 py-5 my-5 text-center">
-  <h1 class="display-5 fw-bold">Hello</h1>
-  <div class="col-lg-6 mx-auto">
-    <div class="my-4">
-      <p class="lead mb-4">
-        We are connected to the Goerli blockchain at the block:
-        {{ blockNumber }}
-      </p>
-      <div class="">
-        <button
-          type="button"
-          #connectButton
-          class="connectButton btn btn-success btn-lg px-4 gap-3"
-          (click)="connectWallet()"
-        >
-          Connect Wallet
-        </button>
-        <button
-          type="button"
-          class="btn btn-warning btn-lg px-4 gap-3"
-          (click)="disconnect()"
-        >
-          Disconnect Wallet
-        </button>
-      </div>
+<style>
+  input {
+    min-width: 150px;
+    min-height: 32px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+</style>
 
-      <div class="card my-4">
-        <div class="card-body">
-          <h5 class="card-title">User Wallet</h5>
-          <h6 class="card-subtitle mb-2 text-muted">
-            {{ userAddress }}
-          </h6>
-          <h6 class="card-subtitle mb-2 text-muted">
-            Balance: {{ userBalance }} ETH
-          </h6>
-          <h6 class="card-subtitle mb-2 text-muted">
-            Balance: {{ userTokenBalance }} MTK
-          </h6>
-          <div class="my-4">
-            <h6>request tokens</h6>
-            <input class="input" #valueInput type="number" min="0" max="10" />
-            <h6>Mint :</h6>
-            <button
-              *ngIf="valueInput.value"
-              type="button"
-              class="btn btn-danger btn-lg px-4 gap-3 my-4"
-              (click)="requestTokens(valueInput.value.toString())"
-            >
-              Mint
-            </button>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="tokenContractAddress" class="card my-4">
-        <div class="card-body">
-          <h5 class="card-title">Token Info</h5>
-          <h6 class="card-subtitle mb-2 text-muted">
-            {{ tokenContractAddress }}
-          </h6>
-          <h6 class="card-subtitle mb-2 text-muted">
-            TotalSupply: {{ tokenSupply }} MTK
-          </h6>
-        </div>
-      </div>
-    </div>
+<div class="px-4 py-5 my-5">
+  <h1 class="display-5 fw-bold text-center">Weekend Project #4</h1>
+  <p class="text-center">
+    By Team 3 Intelstrata#0001, Brandon C.#8663, augustov#8298,
+    benzo#5809,Meek#6464
+  </p>
 
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-      <button
-        type="button"
-        class="btn btn-primary btn-lg px-4 gap-3"
-        (click)="syncBlock()"
-      >
-        Sync
+  <div class="container">
+    <div class="col-lg-12 d-flex justify-content-center">
+      <button type="button" class="btn btn-warning" (click)="connectWallet()">
+        Connect Wallet
       </button>
       <button
         type="button"
-        class="btn btn-outline-secondary btn-lg px-4"
-        (click)="clearBlock()"
+        class="btn btn-primary mx-5"
+        (click)="getBallotContractAddress()"
       >
-        Clear
+        Get Tokenized Ballot Contract Address
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="getTokenContractAddress()"
+      >
+        Get MyToken (ERC20) Contract Address
       </button>
     </div>
   </div>
-</div>
 
-<div>
-  <!-- Footer -->
-  <svg
-    id="clouds"
-    xmlns="http://www.w3.org/2000/svg"
-    width="2611.084"
-    height="485.677"
-    viewBox="0 0 2611.084 485.677"
-  >
-    <title>Gray Clouds Background</title>
-    <path
-      id="Path_39"
-      data-name="Path 39"
-      d="M2379.709,863.793c10-93-77-171-168-149-52-114-225-105-264,15-75,3-140,59-152,133-30,2.83-66.725,9.829-93.5,26.25-26.771-16.421-63.5-23.42-93.5-26.25-12-74-77-130-152-133-39-120-212-129-264-15-54.084-13.075-106.753,9.173-138.488,48.9-31.734-39.726-84.4-61.974-138.487-48.9-52-114-225-105-264,15a162.027,162.027,0,0,0-103.147,43.044c-30.633-45.365-87.1-72.091-145.206-58.044-52-114-225-105-264,15-75,3-140,59-152,133-53,5-127,23-130,83-2,42,35,72,70,86,49,20,106,18,157,5a165.625,165.625,0,0,0,120,0c47,94,178,113,251,33,61.112,8.015,113.854-5.72,150.492-29.764a165.62,165.62,0,0,0,110.861-3.236c47,94,178,113,251,33,31.385,4.116,60.563,2.495,86.487-3.311,25.924,5.806,55.1,7.427,86.488,3.311,73,80,204,61,251-33a165.625,165.625,0,0,0,120,0c51,13,108,15,157-5a147.188,147.188,0,0,0,33.5-18.694,147.217,147.217,0,0,0,33.5,18.694c49,20,106,18,157,5a165.625,165.625,0,0,0,120,0c47,94,178,113,251,33C2446.709,1093.793,2554.709,922.793,2379.709,863.793Z"
-      transform="translate(142.69 -634.312)"
-      fill="#eee"
-    />
-  </svg>
+  <div class="container mt-5">
+    <div class="row gap-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Wallet info</h5>
+            <p class="card-text">
+              <span class="fw-bold">ChainID:</span> {{ getChainID() }}
+            </p>
+            <p class="card-text">
+              <span class="fw-bold">Wallet address:</span> {{ userAddress }}
+            </p>
+            <p class="card-text">
+              <span class="fw-bold">ETH Balance:</span>
+              {{ userBalance ? userBalance + " ETH" : "" }}
+            </p>
+            <p class="card-text">
+              <span class="fw-bold">ERC20 Token Balance:</span>
+              {{ userTokenBalance }} MTK
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Contract info</h5>
+            <p class="card-text">
+              <span class="fw-bold">Tokenized Ballot Contract address:</span>
+              {{ ballotContractAddress }}
+            </p>
+            <p class="card-text">
+              <span class="fw-bold">My Token (ERC20) Contract address:</span>
+              {{ tokenContractAddress }}
+            </p>
+            <p class="card-text">
+              <span class="fw-bold">Total Supply: </span>
+              {{ tokenSupply ? tokenSupply + " MTK" : "" }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">1. Minting</h5>
+
+            <div class="my-4">
+              <div>
+                <input
+                  #valueInput
+                  class="input"
+                  type="number"
+                  min="0"
+                  max="10"
+                  placeholder="Token amount"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary mx-2"
+                  (click)="requestTokens(valueInput.value)"
+                >
+                  Mint Token
+                </button>
+              </div>
+            </div>
+            <!-- 
+            <p *ngIf="loadingMintingTxnInfo">Transaction is loading......</p>
+
+            <div *ngIf="mintingInfo || mintingError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="mintingError">
+                <p class="card-text">
+                  <span class="fw-bold">Error message:</span>
+                  {{ mintingError.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Error details:</span>
+                  {{ mintingError.detailedMessage }}
+                </p>
+              </div>
+
+              <div *ngIf="mintingInfo">
+                <p class="card-text">
+                  <span class="fw-bold">Message:</span>
+                  {{ mintingInfo.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Transaction hash:</span>
+                  {{ mintingInfo.transactionHash }}
+                </p>
+                <p class="card-text">
+                  <a href="{{ mintingInfo.etherscanLink }}" class="fw-bold"
+                    >Etherscan link:</a
+                  >
+                  {{ mintingInfo.etherscanLink }}
+                </p>
+              </div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">2. Delegating</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <input
+                  #valueInput
+                  class="form-control"
+                  class="input"
+                  type="text"
+                  placeholder="Address"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary mx-2"
+                  (click)="delegate(valueInput.value)"
+                >
+                  Address to delegate
+                </button>
+              </div>
+            </div>
+            <!-- 
+            <p *ngIf="loadingDelegatingTxnInfo">Transaction is loading......</p>
+
+            <div *ngIf="delegatingInfo || delegatingError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="delegatingError">
+                <p class="card-text">
+                  <span class="fw-bold">Error message:</span>
+                  {{ delegatingError.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Error details:</span>
+                  {{ delegatingError.detailedMessage }}
+                </p>
+              </div>
+
+              <div *ngIf="delegatingInfo">
+                <p class="card-text">
+                  <span class="fw-bold">Message:</span>
+                  {{ delegatingInfo.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Transaction hash:</span>
+                  {{ delegatingInfo.transactionHash }}
+                </p>
+                <p class="card-text">
+                  <a href="{{ delegatingInfo.etherscanLink }}" class="fw-bold"
+                    >Etherscan link:</a
+                  >
+                  {{ delegatingInfo.etherscanLink }}
+                </p>
+              </div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">3. Voting</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <input
+                  #voteProposal
+                  class="input"
+                  type="text"
+                  placeholder="Proposal index"
+                />
+                <input
+                  #voteAmount
+                  class="input"
+                  type="text"
+                  placeholder="Amount"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary mx-2"
+                  (click)="vote(voteProposal.value, voteAmount.value)"
+                >
+                  Vote
+                </button>
+              </div>
+            </div>
+            <!-- 
+            <p *ngIf="loadingVotingTxnInfo">Transaction is loading......</p>
+
+            <div *ngIf="votingInfo || votingError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="votingError">
+                <p class="card-text">
+                  <span class="fw-bold">Error message:</span>
+                  {{ votingError.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Error details:</span>
+                  {{ votingError.detailedMessage }}
+                </p>
+              </div>
+
+              <div *ngIf="votingInfo">
+                <p class="card-text">
+                  <span class="fw-bold">Message:</span> {{ votingInfo.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Transaction hash:</span>
+                  {{ votingInfo.transactionHash }}
+                </p>
+                <p class="card-text">
+                  <a href="{{ votingInfo.etherscanLink }}" class="fw-bold"
+                    >Etherscan link:</a
+                  >
+                  {{ votingInfo.etherscanLink }}
+                </p>
+              </div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">4. Getting results</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <button
+                  type="button"
+                  class="btn btn-primary mx-2"
+                  (click)="getWinningProposal()"
+                >
+                  Winning Proposal
+                </button>
+              </div>
+            </div>
+            <!-- 
+            <p *ngIf="loadingWinningProposalTxnInfo">
+              Transaction is loading......
+            </p>
+
+            <div *ngIf="winningProposalInfo || winningProposalError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="winningProposalError">
+                <p class="card-text">
+                  <span class="fw-bold">Error message:</span>
+                  {{ winningProposalError.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Error details:</span>
+                  {{ winningProposalError.detailedMessage }}
+                </p>
+              </div>
+
+              <div *ngIf="winningProposalInfo">
+                <p class="card-text">
+                  <span class="fw-bold">Message:</span>
+                  {{ winningProposalInfo.message }}
+                </p>
+                <p class="card-text">
+                  <span class="fw-bold">Transaction hash:</span>
+                  {{ winningProposalInfo.transactionHash }}
+                </p>
+                <p class="card-text">
+                  <a
+                    href="{{ winningProposalInfo.etherscanLink }}"
+                    class="fw-bold"
+                    >Etherscan link:</a
+                  >
+                  {{ winningProposalInfo.etherscanLink }}
+                </p>
+              </div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

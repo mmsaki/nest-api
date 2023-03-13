@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { BigNumber, Contract, Wallet, ethers, utils } from 'ethers';
 import { HttpClient } from '@angular/common/http';
 import tokenJson from '../assets/MyToken.json';
+import ballotJson from '../assets/Ballot.json';
 
 declare global {
   interface Window {
@@ -26,24 +27,40 @@ export class AppComponent {
   userTokenBalance: number | undefined;
   tokenContractAddress: string | undefined;
   tokenContract: Contract | undefined;
+  ballotContractAddress: string | undefined;
+  ballotContract: ethers.Contract | undefined;
   tokenSupply: number | undefined;
+  winningProposalInfo: number | undefined;
+  chainID: string | undefined;
 
   TOKEN_ADDRESS_API_URL = 'http://localhost:3000/contract-address';
+  BALLOT_ADDRESS_API_URL = 'http://localhost:3000/ballot-contract';
   TOKEN_MINT_API_URL = 'http://localhost:3000/request-tokens';
   VOTING_POWER_API_URL = 'http://localhost:3000/voting-power';
+  TOTAL_SUPPLY_API_URL = 'http://localhost:3000/total-supply';
 
   constructor(private http: HttpClient) {
-    this.provider = ethers.providers.getDefaultProvider('goerli');
-    // looks like angular is not a big fan of dotenv?
-    // this.provider = ethers.providers.getDefaultProvider(
-    //   process.env['NETWORK'],
-    //   {
-    //     alchemy: process.env['ALCHEMY_API_KEY'],
-    //   }
-    // );
+    this.provider = new ethers.providers.Web3Provider(window.ethereum);
+    this.syncBlock();
+    this.getTokenContract();
+    this.getBallotContractAddress();
+    this.getEthBalance();
+    this.getTokenContract();
+    this.getBallotContract();
+    this.getTokenBalanceOf();
+    this.getTotalSupply();
+    this.getChainID();
   }
 
-  syncBlock() {
+  async getChainID() {
+    await window.ethereum
+      .request({ method: 'eth_chainId' })
+      .then((ans: any) => {
+        const hexID = ans;
+        this.chainID = hexID;
+      });
+  }
+  async syncBlock() {
     this.blockNumber = 'loading ...';
     this.provider.getBlock('latest').then((block) => {
       this.blockNumber = block.number;
@@ -55,7 +72,74 @@ export class AppComponent {
         this.getTokenInfo();
       });
   }
-  getTokenInfo() {
+  async getTokenContractAddress() {
+    this.http
+      .get<{ result: string }>(this.TOKEN_ADDRESS_API_URL)
+      .subscribe((answer) => {
+        this.tokenContractAddress = answer.result;
+        this.getTokenInfo();
+      });
+  }
+  async getBallotContractAddress() {
+    this.http
+      .get<{ result: string }>(this.BALLOT_ADDRESS_API_URL)
+      .subscribe((answer) => {
+        this.ballotContractAddress = answer.result;
+        this.getTokenInfo();
+      });
+  }
+  async getBallotContract() {
+    if (!this.ballotContractAddress) {
+      return;
+    } else {
+      this.ballotContract = new Contract(
+        this.ballotContractAddress,
+        ballotJson.abi,
+        this.provider
+      );
+    }
+  }
+  async getTokenContract() {
+    if (!this.tokenContractAddress) {
+      return;
+    } else {
+      this.tokenContract = new Contract(
+        this.tokenContractAddress,
+        tokenJson.abi,
+        this.provider
+      );
+    }
+  }
+  async getTokenBalanceOf() {
+    if (!this.tokenContract) return;
+    this.tokenContract?.['balanceOf']?.(this.userAddress).then(
+      (bal: BigNumber) => {
+        const balStr = utils.formatEther(bal);
+        this.userTokenBalance = parseFloat(balStr);
+      }
+    );
+  }
+
+  async getEthBalance() {
+    if (!this.signer) {
+      return;
+    } else {
+      const balanceBN = await this.signer?.getBalance();
+      const balanceStr = ethers.utils.formatEther(balanceBN);
+      const balance = parseFloat(balanceStr);
+      this.userBalance = balance;
+    }
+  }
+
+  async getTotalSupply() {
+    this.http
+      .get<{ result: number }>(this.TOTAL_SUPPLY_API_URL)
+      .subscribe((answer) => {
+        this.tokenSupply = answer.result;
+      });
+  }
+
+  async getTokenInfo() {
     if (!this.tokenContractAddress) return;
     this.tokenContract = new Contract(
       this.tokenContractAddress,
@@ -108,32 +192,23 @@ export class AppComponent {
       const signer = provider.getSigner();
       this.signer = signer;
       this.userAddress = await signer.getAddress();
-      console.log(this.userAddress);
-      const balanceBN = await signer.getBalance();
-      const balanceStr = ethers.utils.formatEther(balanceBN);
-      const balance = parseFloat(balanceStr);
-      this.userBalance = balance;
-      this.isWalletConnected = true;
-      this.userTokenBalance =
-        (await this.tokenContract?.['balanceOf']?.(this.userAddress)).then(
-          (bal: BigNumber) => {
-            return parseFloat(ethers.utils.formatEther(bal));
-          }
-        ) || 'failed to get balance';
+      this.getEthBalance();
     }
   }
-  requestTokens(amount: string) {
+
+  async requestTokens(amount: string) {
     const body = {
       amount: amount,
       address: this.userWallet?.address,
     };
-    this.http
-      .post<{ result: any }>(this.TOKEN_MINT_API_URL, body)
-      .subscribe((answer) => {
-        console.log(answer);
-      });
+    // this.http
+    //   .post<{ result: any }>(this.TOKEN_MINT_API_URL, body)
+    //   .subscribe((answer) => {
+    //     console.log(answer);
+    //   });
+    await this.tokenContract?.['mint'].connect(this.provider);
   }
-  getVotingPower(address: string) {
+  async getVotingPower(address: string) {
     const body = {
       address: this.userWallet?.address,
     };
@@ -143,4 +218,7 @@ export class AppComponent {
         console.log(answer);
       });
   }
+  async getWinningProposal() {}
+  async delegate(value: string) {}
+  async vote(proposal: string, value: string) {}
 }
